@@ -102,17 +102,23 @@ compare Kaiser-Squires (KS), Wiener filter (WF) and HealFormer (HF)
 
 **Mass Mapping: Masked, Clean Maps**
 
-<img src="./imgs/mask_effect_nside256_maskDECaLS_noiseFalse.svg" alt="mask_effect" width="500"/>
+<p align="center">
+  <img src="./imgs/mask_effect_nside256_maskDECaLS_noiseFalse.jpg"  alt="mask_effect" width="500">
+</p>
 
 
 **Mass Mapping: Masked, Noisy Maps**
 
-<img src="./imgs/noise_effect_nside256_maskDECaLS_noiseTrue.svg" alt="noise_effect" width="500"/>
+<p align="center">
+  <img src="./imgs/noise_effect_nside256_maskDECaLS_noiseTrue.jpg"  alt="noise_effect" width="500">
+</p>
 
 
 **Mass Mapping: Unified Variable-Length Masking** *(KiDS, DES, DECaLS, Planck)*
 
-<img src="./imgs/compare_allMask_residual_nside256.svg" alt="residual_allMask" width="500"/>
+<p align="center">
+  <img src="./imgs/compare_allMask_residual_nside256.jpg"  alt="residual_allMask" width="500">
+</p>
 
 
 ## Model Zoo
