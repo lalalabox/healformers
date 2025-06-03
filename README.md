@@ -1,69 +1,62 @@
-# HealFormer: Mask-Aware HEALPix Transformers
+# HealFormers: Mask-Aware HEALPix Transformers
 
 
-**HealFormer** is an advanced deep learning architecture specifically designed for processing data on the HEALPix mesh. It provides a robust and efficient solution for spherical data common in cosmology, astrophysics, and other scientific fields.
+**HealFormer** is an advanced deep learning architecture specifically designed for spherical data on the HEALPix mesh for cosmology, astrophysics, and large-scale structure analysis. HealFormer enables robust, mask-aware inference directly on HEALPix maps, eliminating projection or padding artifacts, and is scalable to the largest sky surveys.
 
 
 ## Key Features
 
 
-| Feature | Description |
-| ---- | ---- |
-| **Mask Awareness** | Directly handles masked regions: processes only visible pixels, adapting to arbitrary mask size/shape. |
-| **Native HEALPix Support** | Operates directly on HEALPix meshes. No need for spherical projection, zero-padding, or lossy approximations. |
-| **Powerful Denoising & Inpainting** | Demonstrates state-of-the-art performance on spherical denoising and missing-data reconstruction tasks. |
-| **Scalable Resolution** | Efficiently scales from low (Nside=256) to high (Nside=1024+) resolutions without loss of accuracy. |
-| **Generalization** | Trained on one cosmology (e.g., Planck18), but robust to multiple cosmological models and survey conditions. |
-| **Training Efficiency** | Utilizes LoRA fine-tuning: adapts with ~10% parameter update overhead, enabling rapid transfer learning. |
-| **Unified Variable-Length Masking** | A single model can process various masking patterns and mask sizes without retraining. |
+| Feature                                   | Description                                                                                        |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Mask Awareness**                        | Directly processes masked regions; adapts to arbitrary mask sizes and shapes.                      |
+| **Native HEALPix Support**                | Operates on HEALPix meshes with no need for projection, padding, or spherical approximation.       |
+| **State-of-the-Art Denoising/Inpainting** | Outperforms conventional methods for spherical denoising and missing-data recovery.                |
+| **Scalable Resolution**                   | Efficiently scales from low (Nside=256) to high (Nside=1024+) resolutions.                         |
+| **Generalization**                        | Models trained on one cosmology (e.g., Planck18) can generalize to multiple cosmologies.           |
+| **Training Efficiency**                   | LoRA-based fine-tuning reduces trainable parameters to ~10%, enabling efficient transfer learning. |
+| **Unified Variable-Length Masking**       | A single model supports various mask patterns and sky coverage, without retraining.                |
 
 
 ## Why HealFormer?
 
 
-- **Purpose-built** for scientific applications involving partial sky coverage, masked regions, or non-contiguous data typical of real-world observations.
-- **Removes preprocessing bottlenecks** by eliminating the need for projection, zero-padding, or custom spherical convolutions.
-- **Designed for modern scientific computing:** supports large-scale, high-resolution maps and future cosmological survey requirements.
+- **Scientific reliability**: Developed for realistic partial-sky, masked, and non-contiguous observational data.
+- **No preprocessing bottleneck**: Removes the need for map projection, padding, or custom spherical convolutions.
+- **Designed for modern scientific computing**: supports large-scale, high-resolution maps and future cosmological survey requirements.
+- **Flexible and extensible**: Easily fine-tuned for custom science goals.
 
-## Example Applications
-
-
-- Weak lensing mass mapping with incomplete sky coverage
-- Power spectrum estimator on masked maps
-- Field-level cosmology inference
-
-
-**Mass Mapping**: masked clean maps
-
-<img src="./imgs/mask_effect_nside256_maskDECaLS_noiseFalse.svg" alt="mask_effect" width="300"/>
-
-
-**Mass Mapping**: masked noisy maps
-
-<img src="./imgs/noise_effect_nside256_maskDECaLS_noiseTrue.svg" alt="noise_effect" width="300"/>
-
-**Mass Mapping**: Unified Variable-Length Masking
-
-<img src="./imgs/compare_allMask_residual_nside256.svg" alt="residual_allMask" width="300"/>
 
 ## Getting Started
 
 
-1. **Installation**
+### Installation
+
 
 ```bash
 pip install healformers
 ```
 
-2. **Usage Example**
+
+### Requirements
+
+
+- Python 3.11+
+- healpy, torch, transformers, [see `pyproject.toml` for details]
+
+
+## Example Usage
+
+
+Below is a minimal example reconstructing a kappa map from mock weak lensing data with HealFormer:
+
 
 ```python
-# Example: Load a pre-trained model then reconstruct kappa map from randomly mock
 import healpy as hp
 import torch
 from healformers import HealFormerConfig, HealFormerModel, Mock
 
-# randomly mock a masked noisy gamma1, gamma2
+# Generate a masked, noisy batch (gamma1, gamma2)
 batch = Mock.generate_full_batch(
     nside=256,
     mask_type="decals",
@@ -72,30 +65,58 @@ batch = Mock.generate_full_batch(
 )
 kappa_true = batch["targets"][0, -1]  # (Npix,)
 
-# load model
-model_path = "xxx"
+# Load pre-trained model
+model_path = "path_to_model_directory"
 config = HealFormerConfig.from_pretrained(model_path)
-model = HealFormerModel.from_pretrained(
-    model_path,
-    config=config,
-)
+model = HealFormerModel.from_pretrained(model_path, config=config)
 
-# predict
+# Inference
 with torch.no_grad():
     outputs = model(**batch)
     kappa_pred = outputs["logits"][0, 0]  # (Npix,)
 
-# visualize
+# Visualization
 kappa_true = kappa_true.float().numpy()
 kappa_pred = kappa_pred.float().numpy()
-hp.mollview(kappa_true, nest=True, title="true kappa", sub=(121))
-hp.mollview(kappa_pred, nest=True, title="reconstructed kappa", sub=(122))
+hp.mollview(kappa_true, nest=True, title="True Kappa", sub=(121))
+hp.mollview(kappa_pred, nest=True, title="Reconstructed Kappa", sub=(122))
 ```
 
-3. **Model Zoo**
 
-- Pretrained models (coming soon)
-- Fine-tuning instructions (coming soon)
+## Applications
+
+
+- **Weak lensing mass mapping** under incomplete sky coverage
+- **Power spectrum estimation** on masked spherical maps
+- **Field-level cosmology**: inference posterior from real-world data
+
+
+## Visualization Examples
+
+
+compare Kaiser-Squires (KS), Wiener filter (WF) and HealFormer (HF)
+
+**Mass Mapping: Masked, Clean Maps**
+
+<img src="./imgs/mask_effect_nside256_maskDECaLS_noiseFalse.svg" alt="mask_effect" width="600"/>
+
+
+**Mass Mapping: Masked, Noisy Maps**
+
+<img src="./imgs/noise_effect_nside256_maskDECaLS_noiseTrue.svg" alt="noise_effect" width="600"/>
+
+
+**Mass Mapping: Unified Variable-Length Masking** *(KiDS, DES, DECaLS, Planck)*
+
+<img src="./imgs/compare_allMask_residual_nside256.svg" alt="residual_allMask" width="600"/>
+
+
+## Model Zoo
+
+
+- Pretrained models: *coming soon*
+- Fine-tuning and transfer learning guides: *coming soon*
+
 
 ## Citation
 
@@ -111,8 +132,23 @@ If you use HealFormer in your research, please cite:
 ## License
 
 
-This project is licensed under the Apache-2.0 License.
+Apache-2.0 License. See [LICENSE](https://github.com/lalalabox/healformers/blob/main/LICENSE) for details.
 
 
+## Contributing
 
-**For questions, bug reports, or contributions, please open an issue or pull request.**
+
+Questions, bug reports, and contributions are welcome! Please open an [issue](https://github.com/lalalabox/healformers/issues) or a pull request.
+
+
+## Credits & Acknowledgements
+
+
+This project is built upon and inspired by the following open-source projects:
+
+- [PyTorch](https://pytorch.org/): Core deep learning framework.
+- [🤗 Transformers](https://github.com/huggingface/transformers): Model architectures and pretraining/fine-tuning utilities.
+- [🤗 PEFT (Parameter-Efficient Fine-Tuning)](https://github.com/huggingface/peft): LoRA and related efficient transfer learning techniques.
+- [Masked Autoencoders (MAE)](https://github.com/facebookresearch/mae): Core concepts for masked modeling and reconstruction.
+
+We thank the authors and contributors of these frameworks for enabling rapid scientific progress.
